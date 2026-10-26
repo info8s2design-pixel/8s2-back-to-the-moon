@@ -11,13 +11,13 @@
   "theme_color": "#0b071a",
   "icons": [
     {
-      "src": "assets/app-icon-192.png",
+      "src": "assets/delorean-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/app-icon-512.png",
+      "src": "assets/delorean-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
