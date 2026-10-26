@@ -124,12 +124,12 @@ function updateInstallLabel(){installButton.textContent=installed()?'APP INSTALL
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;updateInstallLabel()});
 window.addEventListener('appinstalled',()=>{installPrompt=null;installButton.textContent='APP INSTALLATA ✓';installButton.disabled=true});
 installButton.addEventListener('click',async()=>{
- window.open('https://neon-coast-overdrive.freshoak16.chatgpt.site','_blank','noopener,noreferrer');return;
+ if(location.protocol==='file:'){location.href='https://info8s2design-pixel.github.io/8s2-back-to-the-drive/';return}
 
  if(installed()){installButton.textContent='APP INSTALLATA ✓';return}
  if(installPrompt){const prompt=installPrompt;installPrompt=null;await prompt.prompt();await prompt.userChoice;return}
  const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
- document.querySelector('#install-instructions').textContent=ios?'Su iPhone e iPad, apri il gioco in Safari, tocca Condividi e scegli “Aggiungi alla schermata Home”.':'Nel menu del browser cerca “Installa app” oppure “Aggiungi alla schermata Home”. Su computer puoi usare anche l’icona di installazione nella barra degli indirizzi, se disponibile. Se il comando non compare, apri il gioco in un browser compatibile, come Chrome o Edge.';
+ document.querySelector('#install-instructions').textContent=ios?'Su iPhone e iPad, apri il gioco in Safari, tocca Condividi e scegli “Aggiungi alla schermata Home”.':'Su Android, apri il gioco in Chrome e scegli dal menu “Installa app” oppure “Aggiungi alla schermata Home”. Su PC e tablet Windows, usa Chrome o Edge e scegli “Installa app” dalla barra degli indirizzi o dal menu del browser. Su Mac puoi usare Chrome oppure, in Safari, File → Aggiungi al Dock. Se hai appena aperto il gioco, attendi il caricamento completo e riprova il pulsante Installa app.';
  installHelp.showModal();
 });
 installHelp.querySelector('button').addEventListener('click',()=>installHelp.close());
