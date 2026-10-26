@@ -341,7 +341,7 @@ function toggleView(){camera=camera==='chase'?'cockpit':'chase';$('.game').class
 $('#view').onclick=toggleView;addEventListener('keydown',e=>{if(e.key.toLowerCase()==='v'&&!e.repeat)toggleView()});
 pause=function(){if(mode==='play'){mode='paused';$('#overlay').classList.remove('hide');$('#pill').textContent='CORSA IN PAUSA';$('#message').textContent='Premi P o Riprendi per tornare in pista.';$('#start').textContent='RIPRENDI ↗'}else if(mode==='paused')resume()};
 finish=function(){if(mode==='over')return;mode='over';if(endReason==='win')score+=Math.round(time*100)+(5-crashes)*500;best=Math.max(best,Math.floor(score));try{localStorage.setItem('neoncoast-best',best)}catch{}$('#best').textContent=String(best).padStart(6,'0');$('#overlay').classList.remove('hide');$('#pill').textContent=endReason==='win'?'TRAGUARDO / CORSA COMPLETATA':endReason==='crash'?'5 INCIDENTI / AUTO FUORI USO':'TEMPO SCADUTO';const km=(raceMeters/1000).toFixed(2).replace('.',',');$('#message').textContent=endReason==='win'?`${TOTAL_DISTANCE/1000} km completati in ${raceElapsed.toFixed(1)} s · ${Math.floor(score).toLocaleString('it-IT')} punti · ${crashes}/5 incidenti`:endReason==='crash'?`Auto distrutta dopo ${km} km. Il prossimo viaggio ti aspetta.`:`Hai percorso ${km} km su ${TOTAL_DISTANCE/1000}. Usa il nitro e raggiungi i checkpoint per guadagnare tempo.`;$('#start').textContent='NUOVA CORSA ↗';$('#checkpoint-toast').style.opacity=0};
-function advanceCampaign(dt){raceElapsed+=dt;raceMeters=Math.min(TOTAL_DISTANCE,raceMeters+speed*dt/3.6);if(raceMeters>=TOTAL_DISTANCE){endReason='win';finish();return}const next=Math.min(STAGES.length-1,Math.floor(raceMeters/STAGE_LENGTH));if(next>campaignStage){campaignStage=next;time+=CHECKPOINT_BONUS;nitro=Math.min(100,nitro+35);checkpointToast=3.5;traffic=[];seedTraffic();spawn=.25;score+=1000;clearSceneryCache()}}
+function advanceCampaign(dt){raceElapsed+=dt;raceMeters=Math.min(TOTAL_DISTANCE,raceMeters+speed*dt/3.6);if(raceMeters>=TOTAL_DISTANCE){endReason='win';finish();return}const next=Math.min(STAGES.length-1,Math.floor(raceMeters/STAGE_LENGTH));if(next>campaignStage){campaignStage=next;playCheckpointSound();time+=CHECKPOINT_BONUS;nitro=Math.min(100,nitro+35);checkpointToast=3.5;traffic=[];seedTraffic();spawn=.25;score+=1000;clearSceneryCache()}}
 function updateCampaignHUD(){const stage=STAGES[campaignStage];$('#stage-name').textContent=`${String(campaignStage+1).padStart(2,'0')}/${String(STAGES.length).padStart(2,'0')} · ${stage.name}`;$('#distance-left').textContent=`${((TOTAL_DISTANCE-raceMeters)/1000).toFixed(2).replace('.',',')} KM AL TRAGUARDO`;$('#race-progress').style.width=raceMeters/TOTAL_DISTANCE*100+'%';$('#checkpoint-toast').hidden=!(checkpointToast>0&&mode==='play');$('#checkpoint-toast').textContent=checkpointToast>0?`CHECKPOINT +${CHECKPOINT_BONUS} S · ${stage.name}`:'';$('#checkpoint-toast').style.opacity=checkpointToast>0&&mode==='play'?Math.min(1,checkpointToast):0;$('.route').textContent=`ROUTE ${String(campaignStage+1).padStart(2,'0')} — ${stage.name} ↗`}
 // Lane reservations protect both lanes throughout a smooth lane change.
 const RIVAL_GAP=.56;
@@ -1104,7 +1104,28 @@ window.addEventListener('focus',syncVictoryMusic);
 document.addEventListener('visibilitychange',syncVictoryMusic);
 updateVictorySound();
 
-</script><script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(console.error))}</script></body></html>
+</script><script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(console.error))}</script><script>
+// Decode the checkpoint sample through the game audio context, unlocked at race start.
+let checkpointBuffer=null,checkpointDecoding=null,checkpointSource=null;
+const checkpointBytes=fetch("assets/checkpoint.mp3").then(r=>{if(!r.ok)throw Error('Checkpoint sound unavailable');return r.arrayBuffer()});
+checkpointBytes.catch(()=>{});
+function prepareCheckpointSound(){
+ if(!audio)return;
+ soundInit();
+ if(!checkpointDecoding)checkpointDecoding=checkpointBytes.then(bytes=>ac.decodeAudioData(bytes)).then(buffer=>{checkpointBuffer=buffer}).catch(()=>{checkpointDecoding=null});
+}
+function playCheckpointSound(){
+ if(!audio||!checkpointBuffer||!ac)return;
+ if(checkpointSource){try{checkpointSource.stop()}catch{}}
+ const source=ac.createBufferSource(),volume=ac.createGain();source.buffer=checkpointBuffer;volume.gain.value=.8;source.connect(volume);volume.connect(ac.destination);checkpointSource=source;
+ source.onended=()=>{source.disconnect();volume.disconnect();if(checkpointSource===source)checkpointSource=null};
+ source.start();
+}
+const startBeforeCheckpointSound=start;
+start=function(){prepareCheckpointSound();startBeforeCheckpointSound()};
+const toggleBeforeCheckpointSound=document.querySelector('#sound').onclick;
+document.querySelector('#sound').onclick=function(){toggleBeforeCheckpointSound();if(audio)prepareCheckpointSound();else if(checkpointSource){try{checkpointSource.stop()}catch{}}};
+</script></body></html>
 
 
 
