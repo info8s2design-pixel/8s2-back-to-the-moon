@@ -1139,20 +1139,24 @@ const startBeforeCheckpointSound=start;
 start=function(){prepareCheckpointSound();startBeforeCheckpointSound()};
 const toggleBeforeCheckpointSound=document.querySelector('#sound').onclick;
 document.querySelector('#sound').onclick=function(){toggleBeforeCheckpointSound();if(audio)prepareCheckpointSound();else if(checkpointSource){try{checkpointSource.stop()}catch{}}};
-</script><script>
-let gameOverBuffer=null,gameOverDecoding=null,gameOverSource=null;
-const gameOverBytes=fetch("assets/game-over-voice.mp3").then(r=>{if(!r.ok)throw Error('Game Over sound unavailable');return r.arrayBuffer()});gameOverBytes.catch(()=>{});
-function prepareGameOverSound(){if(!audio)return;soundInit();if(!gameOverDecoding)gameOverDecoding=gameOverBytes.then(bytes=>ac.decodeAudioData(bytes)).then(buffer=>{gameOverBuffer=buffer}).catch(()=>{gameOverDecoding=null})}
-function stopGameOverSound(){if(gameOverSource){try{gameOverSource.stop()}catch{}gameOverSource=null}}
-function playGameOverSound(){
- if(!audio||!gameOverBuffer||!ac)return;stopGameOverSound();
- const source=ac.createBufferSource(),volume=ac.createGain();source.buffer=gameOverBuffer;volume.gain.value=.85;source.connect(volume);volume.connect(ac.destination);gameOverSource=source;
- source.onended=()=>{source.disconnect();volume.disconnect();if(gameOverSource===source)gameOverSource=null};source.start();
+</script><audio id="game-over-audio" preload="auto" src="assets/game-over-voice.mp3"></audio><script>
+const gameOverAudio=document.querySelector('#game-over-audio');gameOverAudio.volume=1;
+let gameOverRequested=false,gameOverRun=0;
+function stopGameOverSound(){gameOverRequested=false;gameOverRun++;gameOverAudio.pause();gameOverAudio.currentTime=0;gameOverAudio.dataset.playback='stopped'}
+function unlockGameOverSound(){
+ if(!audio)return;const run=gameOverRun;gameOverAudio.muted=true;
+ const p=gameOverAudio.play();if(p)p.then(()=>{if(run!==gameOverRun||gameOverRequested)return;gameOverAudio.pause();gameOverAudio.currentTime=0;gameOverAudio.muted=!audio}).catch(()=>{gameOverAudio.muted=!audio});
 }
-const startBeforeGameOverSound=start;start=function(){stopGameOverSound();prepareGameOverSound();startBeforeGameOverSound()};
-const finishBeforeGameOverSound=finish;finish=function(){const wasOver=mode==='over';finishBeforeGameOverSound();if(!wasOver&&mode==='over'&&endReason!=='win'&&document.querySelector('#overlay').classList.contains('loss-screen'))playGameOverSound()};
-const toggleBeforeGameOverSound=document.querySelector('#sound').onclick;document.querySelector('#sound').onclick=function(){toggleBeforeGameOverSound();if(audio)prepareGameOverSound();else stopGameOverSound()};
-window.addEventListener('blur',stopGameOverSound);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopGameOverSound()});
+function playGameOverSound(){
+ if(!audio)return;gameOverRequested=true;gameOverAudio.muted=false;gameOverAudio.currentTime=0;gameOverAudio.dataset.playback='requested';
+ const p=gameOverAudio.play();if(p)p.catch(error=>{gameOverAudio.dataset.playback='blocked';console.warn('Game Over audio playback failed',error)});
+}
+gameOverAudio.addEventListener('playing',()=>{if(gameOverRequested)gameOverAudio.dataset.playback='playing'});
+gameOverAudio.addEventListener('ended',()=>{if(gameOverRequested){gameOverRequested=false;gameOverAudio.dataset.playback='ended'}});
+const startBeforeGameOverSound=start;start=function(){stopGameOverSound();unlockGameOverSound();startBeforeGameOverSound()};
+const finishBeforeGameOverSound=finish;finish=function(){const wasOver=mode==='over';finishBeforeGameOverSound();if(!wasOver&&mode==='over'&&endReason!=='win')playGameOverSound()};
+const toggleBeforeGameOverSound=document.querySelector('#sound').onclick;document.querySelector('#sound').onclick=function(){toggleBeforeGameOverSound();if(!audio)stopGameOverSound()};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopGameOverSound()});
 </script></body></html>
 
 
