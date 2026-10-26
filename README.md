@@ -2,7 +2,7 @@
 
 [Gioca online](https://info8s2design-pixel.github.io/8s2-back-to-the-drive/)
 
-Versione **1.1.14** — guida arcade attraverso 10 paesaggi al neon e 30 km di percorso.
+Versione **1.1.15** — guida arcade attraverso 10 paesaggi al neon e 30 km di percorso.
 
 ## Comandi
 
