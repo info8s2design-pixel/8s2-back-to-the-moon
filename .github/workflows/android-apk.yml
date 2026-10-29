@@ -31,7 +31,7 @@ jobs:
           const fs = require('fs');
           const file = 'www/index.html';
           let html = fs.readFileSync(file, 'utf8');
-          const css = '<style id="android-only-install-hide">#install-app{display:none!important}</style>';
+          const css = '<style id="android-only-install-hide">#install-app{display:none!important}.intro-utility-buttons{flex-wrap:wrap!important}.intro-utility-buttons>button{order:1}.intro-utility-buttons:before{content:"";flex-basis:100%;width:0;order:2}.intro-utility-buttons>a{order:3;margin-inline:auto!important;flex:0 1 auto;max-width:100%}</style>';
           const js = '<script id="android-only-install-script">document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll("button").forEach(function(b){var t=(b.textContent||"").trim().toLowerCase();if(t==="installa app"||t==="↓ installa app"||t==="⬇ installa app"){b.style.setProperty("display","none","important");b.setAttribute("aria-hidden","true");}});});</script>';
           const patch = css + js;
           if (!html.includes('android-only-install-script')) {
