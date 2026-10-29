@@ -1,0 +1,33 @@
+name: Update Android release description
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update-description:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update existing GitHub release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > /tmp/release-notes.md <<'RELEASE_NOTES'
+# 8S2 Back to the Moon — Android
+
+**Accendi il motore. Attraversa il tempo. Raggiungi la Luna!**
+
+Un'avventura automobilistica rétro-futuristica tra velocità, atmosfere synthwave e scenari sorprendenti.
+
+## Caratteristiche
+- Ambientazioni ispirate agli anni '80
+- Livelli progressivi e sfide di guida
+- Comandi touch per smartphone e tablet
+- Storia introduttiva e colonna sonora
+- Giocabile offline, senza connessione Internet
+
+## Installazione Android
+Scarica il file APK dalla sezione **Assets** qui sotto e installalo sul dispositivo Android. Se Android richiede un'autorizzazione per installare app da questa fonte, concedila soltanto se ti fidi del file scaricato da questa release ufficiale.
+
+**Sviluppato da 8S2 Design.**
+RELEASE_NOTES
+          gh release edit "android-v1.1.18" --repo "${{ github.repository }}" --notes-file /tmp/release-notes.md
